@@ -1,0 +1,12 @@
+.photo-option {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border 0.3s;
+}
+
+.photo-option.selected-photo {
+    border: 3px solid blue;
+}
