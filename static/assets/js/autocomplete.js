@@ -1,7 +1,9 @@
 $(document).ready(function() {
+    // Handle input event on the autocomplete field
     $('#autocomplete').on('input', function() {
         var query = $(this).val();
         if (query.length > 2) {
+            // Fetch autocomplete suggestions
             $.ajax({
                 url: '/autocomplete',
                 data: { query: query },
@@ -21,17 +23,15 @@ $(document).ready(function() {
         }
     });
 
+    // Handle click event on suggestion items
     $(document).on('click', '#suggestions li', function() {
-        var placeDescription = $(this).text();
         var placeId = $(this).data('place-id');
-        $('#autocomplete').val(placeDescription);
+        $('#autocomplete').val($(this).text());
         $('#place_id').val(placeId);
         $('#suggestions').empty();
-
-        // Clear previously selected photo
         $('#selected_photo').val('');
 
-        // Fetch details for the selected place
+        // Fetch place details
         $.ajax({
             url: '/get_place_details',
             data: { place_id: placeId },
@@ -41,14 +41,25 @@ $(document).ready(function() {
                     $('#address_field').removeClass('d-none').find('#address').val(data.address);
                     $('#rating_field').removeClass('d-none').find('#rating').val(data.rating);
 
+                    $('#lat').val(data.lat);
+                    $('#lng').val(data.lng);
+
                     var photosDiv = $('#photos_field').removeClass('d-none').find('#photos').empty();
-                    data.photos.forEach(function(photoUrl) {
-                        $('<div>', { 'class': 'col-md-4' }).append(
-                            $('<img>', { 'class': 'img-thumbnail m-2 photo-option', src: photoUrl, 'data-photo-url': photoUrl })
-                        ).appendTo(photosDiv);
+                    data.photos.forEach(function(photoReference) {
+                        // Fetch the photo URL from the backend
+                        $.ajax({
+                            url: '/get_photo_url',
+                            data: { photo_reference: photoReference },
+                            success: function(photoData) {
+                                $('<div>', { 'class': 'col-12 col-sm-6 col-md-4 col-lg-3 photo-container' }).append(
+                                    $('<img>', { 'class': 'img-thumbnail m-2 photo-option', src: photoData.photo_url, 'data-photo-reference': photoReference })
+                                ).appendTo(photosDiv);
+                            }
+                        });
                     });
 
-                    $('#map_location_field').removeClass('d-none').find('#map_location').attr('src', data.map_location);
+                    // Fetch and display the map image
+                    fetchMapImage(data.lat, data.lng);
                 }
             },
             error: function(xhr, status, error) {
@@ -57,10 +68,43 @@ $(document).ready(function() {
         });
     });
 
+    // Handle click event on photo options
     $(document).on('click', '.photo-option', function() {
         $('.photo-option').removeClass('selected-photo');
         $(this).addClass('selected-photo');
-        var photoUrl = $(this).data('photo-url');
-        $('#selected_photo').val(photoUrl);
+        var photoReference = $(this).data('photo-reference');
+        $('#selected_photo').val(photoReference);
+    });
+
+    // Handle form submission
+    $('#placeForm').submit(function(event) {
+        event.preventDefault();
+
+        var formData = $(this).serialize();
+        $.ajax({
+            type: 'POST',
+            url: '/add_place',
+            data: formData,
+            success: function(response) {
+                window.location.href = '/';
+            },
+            error: function(xhr, status, error) {
+                console.error('Error adding place:', error);
+            }
+        });
     });
 });
+
+// Function to fetch and display the map image
+function fetchMapImage(lat, lng) {
+    $.ajax({
+        url: '/get_map',
+        data: { lat: lat, lng: lng },
+        success: function(data) {
+            $('#map_location_field').removeClass('d-none').find('#map_location').attr('src', 'data:image/jpeg;base64,' + data.map_image);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching map image:', error);
+        }
+    });
+}

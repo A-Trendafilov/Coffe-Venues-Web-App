@@ -2,7 +2,7 @@
 <div class="page-header d-flex align-items-center">
   <div class="container position-relative">
     <div class="row d-flex justify-content-center">
-      <div class="col-lg-6 text-center">
+      <div class="col-lg-10 text-center">
         <h2>Add New Venue</h2>
         <form id="placeForm" method="POST" action="/add_place">
           <div class="form-group">
@@ -29,11 +29,19 @@
             <input type="hidden" id="selected_photo" name="selected_photo">
           </div>
           <div id="map_location_field" class="form-group d-none">
-            <label for="map_location">Map Location:</label>
-            <img id="map_location" class="img-fluid" alt="Map Location" src="">
+            <div class="map_location">
+              <label for="map_location">Map Location:</label>
+            </div>
+            <div>
+              <img id="map_location" class="img-fluid" alt="Map Location" src="">
+            </div>
           </div>
+          <input type="hidden" id="lat" name="lat">
+          <input type="hidden" id="lng" name="lng">
           <input type="hidden" id="place_id" name="place_id">
-          <button type="submit" class="btn btn-primary">Add Place</button>
+          <button type="submit" class="btn btn-primary" style="margin-top: 20px; margin-bottom: 20px;">
+            Add Place
+          </button>
         </form>
       </div>
     </div>

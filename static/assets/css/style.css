@@ -1,5 +1,5 @@
 .photo-option {
-    width: 200px;
+    width: 250px;
     height: 200px;
     object-fit: cover;
     cursor: pointer;
@@ -9,4 +9,10 @@
 
 .photo-option.selected-photo {
     border: 3px solid blue;
+}
+
+.photo-container {
+    display: flex;
+    justify-content: center;
+    padding: 15px;
 }
