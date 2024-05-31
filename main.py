@@ -4,7 +4,7 @@ import googlemaps
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 
-from db_models import db, Place
+from db_model import db, Place
 from url_modifier import URLModifier
 
 load_dotenv()
