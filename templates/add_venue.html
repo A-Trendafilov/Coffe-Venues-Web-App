@@ -8,7 +8,7 @@
           <div class="page-header text-center">
             <h2>Add New Venue</h2>
           </div>
-          <form id="placeForm" method="POST" action="/add_place">
+          <form id="placeForm" method="POST" action="/add_venue">
             <div class="form-group">
               <label for="autocomplete">Search Location:</label>
               <input id="autocomplete" type="text" class="form-control mb-2 mt-2" name="autocomplete"
@@ -46,6 +46,7 @@
             <input type="hidden" id="lat" name="lat">
             <input type="hidden" id="lng" name="lng">
             <input type="hidden" id="place_id" name="place_id">
+            <input type="hidden" id="static_map_url" name="static_map_url">
             <div class="text-center mt-3">
               <button type="submit" class="btn btn-primary">Add Place</button>
               <button id="clearFormBtn" type="button" class="btn btn-danger ml-4">Clear Search</button>

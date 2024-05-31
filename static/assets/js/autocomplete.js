@@ -86,7 +86,7 @@ $(document).ready(function() {
         var formData = $(this).serialize();
         $.ajax({
             type: 'POST',
-            url: '/add_place',
+            url: '/add_venue',
             data: formData,
             success: function(response) {
                 window.location.href = '/';
