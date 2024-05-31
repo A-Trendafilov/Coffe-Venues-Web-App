@@ -17,8 +17,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///places.db"
 db.init_app(app)
 gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 
-with app.app_context():
-    db.create_all()
+
+# Uncomment on the 1st run to create the database.
+# with app.app_context():
+#     db.create_all()
 
 
 def modify_urls(venues, api_key):
@@ -178,4 +180,4 @@ def add_venue():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
