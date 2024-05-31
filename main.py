@@ -1,12 +1,11 @@
-import base64
 import os
-
+from data import data
 import googlemaps
-import requests
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, jsonify, redirect, url_for, Response
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 
 from db_models import db, Place
+from url_modifier import URLModifier
 
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -22,17 +21,42 @@ with app.app_context():
     db.create_all()
 
 
+def modify_urls(venues, api_key):
+    for venue in venues:
+        if venue.photo_url:
+            photo_url_modifier = URLModifier(venue.photo_url)
+            venue.photo_url = photo_url_modifier.modify_param("key", api_key)
+            print(venue.photo_url)
+
+        if venue.map_url:
+            map_url_modifier = URLModifier(venue.map_url)
+            venue.map_url = map_url_modifier.modify_param("key", api_key)
+            print(venue.map_url)
+    return venues
+
+
 @app.route("/")
 def home():
     result = db.session.execute(db.select(Place))
     venues = result.scalars().all()
-    return render_template("index.html", all_venues=venues)
+    modified_venues = modify_urls(venues, GOOGLE_API_KEY)
+    return render_template("index.html", all_venues=modified_venues)
 
 
-@app.route("/post/<int:venue_id>", methods=["GET", "POST"])
+@app.route("/venue/<int:venue_id>", methods=["GET", "POST"])
 def venue_details(venue_id):
     requested_venue = db.get_or_404(Place, venue_id)
-    return render_template("venue_details.html", venue=requested_venue)
+    modified_venues = modify_urls([requested_venue], GOOGLE_API_KEY)
+    modified_venue = modified_venues[0]
+    return render_template("venue_details.html", venue=modified_venue)
+
+
+@app.route("/delete/<int:venue_id>", methods=["GET", "POST"])
+def delete_venue(venue_id):
+    venue_to_delete = db.get_or_404(Place, venue_id)
+    db.session.delete(venue_to_delete)
+    db.session.commit()
+    return redirect(url_for("home"))
 
 
 @app.route("/autocomplete", methods=["GET"])
@@ -61,6 +85,7 @@ def get_place_details():
     if place_id:
         try:
             place_details = gmaps.place(place_id=place_id)["result"]
+            print(place_details)
             name = place_details["name"]
             address = place_details["formatted_address"]
             lat = place_details["geometry"]["location"]["lat"]
@@ -87,8 +112,8 @@ def get_place_details():
     return jsonify({"status": "error", "message": "Place ID not provided."})
 
 
-@app.route("/get_map", methods=["GET"])
-def get_map():
+@app.route("/get_static_map", methods=["GET"])
+def get_static_map():
     lat = request.args.get("lat")
     lng = request.args.get("lng")
     if lat and lng:
@@ -96,59 +121,28 @@ def get_map():
             f"https://maps.googleapis.com/maps/api/staticmap?center={lat},"
             f"{lng}&zoom=15&size=640x640&markers=color:red%7Clabel:%7C{lat},{lng}&key={GOOGLE_API_KEY}"
         )
-        try:
-            response = requests.get(map_location)
-            if response.status_code == 200:
-                map_image_base64 = base64.b64encode(response.content).decode("utf-8")
-                return jsonify({"map_image": map_image_base64})
-            else:
-                return (
-                    jsonify(
-                        {"error": "Failed to fetch map image from Google Maps API"}
-                    ),
-                    500,
-                )
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+        return jsonify({"map_image_url": map_location})
     else:
         return jsonify({"error": "Latitude and longitude not provided"}), 400
-
-
-@app.route("/get_photo", methods=["GET"])
-def get_photo():
-    photo_reference = request.args.get("photo_reference")
-    if photo_reference:
-        try:
-            response = requests.get(
-                f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo_reference}&key={GOOGLE_API_KEY}"
-            )
-            if response.status_code == 200:
-                return Response(
-                    response.content, content_type=response.headers["Content-Type"]
-                )
-            else:
-                return (
-                    jsonify({"error": "Failed to fetch photo from Google Maps API"}),
-                    500,
-                )
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    else:
-        return jsonify({"error": "Photo reference not provided"}), 400
 
 
 @app.route("/get_photo_url", methods=["GET"])
 def get_photo_url():
     photo_reference = request.args.get("photo_reference")
+    max_width = request.args.get("max_width", 640)
+    max_height = request.args.get("max_height", 640)
     if photo_reference:
-        photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo_reference}&key={GOOGLE_API_KEY}"
+        photo_url = (
+            f"https://maps.googleapis.com/maps/api/place/photo?maxwidth={max_width}"
+            f"&maxheight={max_height}&photoreference={photo_reference}&key={GOOGLE_API_KEY}"
+        )
         return jsonify({"photo_url": photo_url})
     else:
         return jsonify({"error": "Photo reference not provided"}), 400
 
 
-@app.route("/add_place", methods=["GET", "POST"])
-def add_place():
+@app.route("/add_venue", methods=["GET", "POST"])
+def add_venue():
     if request.method == "POST":
         place_id = request.form.get("place_id")
         name = request.form.get("name")
@@ -156,7 +150,14 @@ def add_place():
         lat = request.form.get("lat")
         lng = request.form.get("lng")
         rating = request.form.get("rating")
-        photo_reference = request.form.get("photo_reference")
+        photo_url = request.form.get("photo_url")
+        map_url = request.form.get("static_map_url")
+
+        photo_url_modifier = URLModifier(photo_url)
+        new_photo_url = photo_url_modifier.remove_param("key")
+
+        map_url_modifier = URLModifier(map_url)
+        new_map_url = map_url_modifier.remove_param("key")
 
         new_place = Place(
             name=name,
@@ -165,14 +166,15 @@ def add_place():
             place_id=place_id,
             lng=lng,
             lat=lat,
-            photo_reference=photo_reference,
+            photo_url=new_photo_url,
+            map_url=new_map_url,
         )
 
         db.session.add(new_place)
         db.session.commit()
 
         return redirect(url_for("home"))
-    return render_template("add_place.html")
+    return render_template("add_venue.html")
 
 
 if __name__ == "__main__":

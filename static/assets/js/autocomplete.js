@@ -58,7 +58,7 @@ $(document).ready(function() {
                         });
                     });
 
-                    // Fetch and display the map image
+                    // Call fetchMapImage with lat and lng
                     fetchMapImage(data.lat, data.lng);
                 }
             },
@@ -69,12 +69,15 @@ $(document).ready(function() {
     });
 
     // Handle click event on photo options
-    $(document).on('click', '.photo-option', function() {
+     $(document).on('click', '.photo-option', function() {
         $('.photo-option').removeClass('selected-photo');
         $(this).addClass('selected-photo');
-        var photoReference = $(this).data('photo-reference');
-        $('#selected_photo').val(photoReference);
+        var photoUrl = $(this).attr('src'); // Assuming the photo URL is the src attribute of the image
+        $('#selected_photo').val($(this).data('photo-reference'));
+        $('#selected_photo_url').val(photoUrl); // Set the photo URL in the hidden input field
     });
+
+
 
     // Handle form submission
     $('#placeForm').submit(function(event) {
@@ -95,16 +98,46 @@ $(document).ready(function() {
     });
 });
 
+
+// Function to fetch and display the map image
 // Function to fetch and display the map image
 function fetchMapImage(lat, lng) {
-    $.ajax({
-        url: '/get_map',
-        data: { lat: lat, lng: lng },
-        success: function(data) {
-            $('#map_location_field').removeClass('d-none').find('#map_location').attr('src', 'data:image/jpeg;base64,' + data.map_image);
-        },
-        error: function(xhr, status, error) {
-            console.error('Error fetching map image:', error);
-        }
-    });
+    if (lat && lng) {
+        $.ajax({
+            url: '/get_static_map',
+            method: 'GET',
+            data: { lat: lat, lng: lng },
+            success: function(response) {
+                console.log('Map image response:', response); // Log the response
+                $('#map_location_field').removeClass('d-none').find('#map_location').attr('src', response.map_image_url);
+                $('#static_map_url').val(response.map_image_url);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching map image:', error);
+            }
+        });
+    }
 }
+
+
+// Handle click event on the clear button
+$('#clearFormBtn').click(function() {
+  $('#autocomplete').val(''); // Clear the autocomplete field
+  // Reset any other form fields you need to clear
+  $('#name').val('');
+  $('#address').val('');
+  $('#rating').val('');
+  $('#selected_photo').val('');
+  $('#selected_photo_url').val('');
+  $('#map_location').attr('src', ''); // Clear the map image
+  $('#static_map_url').val('');
+  // Hide the map location field if it's visible
+  $('#map_location_field').addClass('d-none');
+
+  // Hide input fields and labels
+  $('#name_field').addClass('d-none');
+  $('#address_field').addClass('d-none');
+  $('#rating_field').addClass('d-none');
+  $('#photos_field').addClass('d-none');
+});
+

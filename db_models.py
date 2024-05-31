@@ -18,4 +18,5 @@ class Place(db.Model):
     place_id: Mapped[str] = mapped_column(String(50), nullable=False)
     lat: Mapped[str] = mapped_column(String(50), nullable=False)
     lng: Mapped[str] = mapped_column(String(50), nullable=False)
-    photo_url: Mapped[str] = mapped_column(String(255), nullable=False)
+    photo_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    map_url: Mapped[str] = mapped_column(String(500), nullable=False)

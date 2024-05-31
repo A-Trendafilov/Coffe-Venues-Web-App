@@ -7,7 +7,7 @@
       <div class="col-lg-6 text-center">
         <h2>Coffe Places</h2>
         <p>Discover the best coffee spots around!</p>
-        <a href="{{url_for('add_place')}}" class="btn-get-started">Add New Venue</a>
+        <a href="{{url_for('add_venue')}}" class="btn-get-started">Add New Venue</a>
       </div>
     </div>
   </div>
@@ -22,21 +22,14 @@
         {% for venue in all_venues %}
         <div class="col-xl-3 col-lg-4 col-md-6">
           <p>{{venue.name}}</p>
-          <div class="gallery-item h-100">
-            <img src="{{venue.photo_url}}" class="img-fluid" alt="">
-            <div class="gallery-links d-flex align-items-center justify-content-center">
-              <a href="{{venue.photo_url}}" title="{{venue.name}}" class="glightbox preview-link"><i
-                  class="bi bi-arrows-angle-expand"></i></a>
-              <a href="{{ url_for('venue_details', venue_id=venue.id) }}" class="details-link"><i
-                  class="bi bi-link-45deg"></i></a>
-            </div>
-
+          <div class="gallery-item">
+            <a href="{{ url_for('venue_details', venue_id=venue.id) }}">
+              <img src="{{venue.photo_url}}" class="img-fluid" alt="">
+            </a>
           </div>
-
-        </div><!-- End Gallery Item -->
-        {% endfor %}
-
-      </div>
+        </div>
+      </div><!-- End Gallery Item -->
+      {% endfor %}
     </div>
   </section><!-- End Gallery Section -->
 

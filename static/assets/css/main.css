@@ -709,16 +709,22 @@ h6 {
 --------------------------------------------------------------*/
 .gallery {
   margin-top: 40px;
+
 }
 
 .gallery .gallery-item {
   position: relative;
   overflow: hidden;
   border-radius: 10px;
+  height: 400px;
+  width: 400px;
 }
 
 .gallery .gallery-item img {
   transition: 0.3s;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
 }
 
 .gallery .gallery-links {
@@ -771,11 +777,20 @@ h6 {
   margin: 0;
 }
 
+@media screen and (max-width: 768px) {
+  .gallery .gallery-item {
+    width: 50%; /* Set width to 100% for smaller screens */
+    height: 50%; /* Let the height adjust automatically */
+  }
+}
+
+
 /*--------------------------------------------------------------
 # Gallery Single Section
 --------------------------------------------------------------*/
 .gallery-single .portfolio-details-slider img {
   width: 100%;
+  object-fit: contain;
 }
 
 .gallery-single .portfolio-details-slider .swiper-pagination .swiper-pagination-bullet {
