@@ -108,8 +108,8 @@ Delete a coffee place from the database.
 
 ### Screenshots
 
-<img alt="Screenshot 1" src="/screenshots/coffe-venue-1.png"/>
+<img alt="Screenshot 1" src="/screenshots/coffee-venue-1.png"/>
 
-<img alt="Screenshot 2" src="/screenshots/coffe-venue-2.png"/>
+<img alt="Screenshot 2" src="/screenshots/coffee-venue-2.png"/>
 
-<img alt="Screenshot 3" src="/screenshots/coffe-venue-3.png"/>
+<img alt="Screenshot 3" src="/screenshots/coffee-venue-3.png"/>
